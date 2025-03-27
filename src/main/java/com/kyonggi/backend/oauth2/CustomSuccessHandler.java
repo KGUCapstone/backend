@@ -60,7 +60,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
 
         // 프론트엔드로 리다이렉트
-        getRedirectStrategy().sendRedirect(request, response, frontendUrl+"/mainpage");
+        getRedirectStrategy().sendRedirect(request, response, frontendUrl+"/home");
 
     }
 
