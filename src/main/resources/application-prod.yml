@@ -7,6 +7,6 @@ spring:
 
 
   backend:
-    url: ${Backend_URL}
+    url: ${BACKEND_URL}
   frontend:
-    url: ${Frontend_URL}
+    url: ${FRONTEND_URL}
