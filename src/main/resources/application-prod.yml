@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:mariadb://${DB_URL}/${DB_DATABASE_NAME}?useSSL=false&serverTimezone=Asia/Seoul
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver
+
+
+  backend:
+    url: ${Backend_URL}
+  frontend:
+    url: ${Frontend_URL}
