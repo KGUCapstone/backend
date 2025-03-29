@@ -1,8 +1,8 @@
-package com.kyonggi.backend.domain.member.service;
+package com.kyonggi.backend.model.member.service;
 
-import com.kyonggi.backend.domain.member.dto.CustomUserDetails;
-import com.kyonggi.backend.domain.member.entity.Member;
-import com.kyonggi.backend.domain.member.repository.MemberRepository;
+import com.kyonggi.backend.model.member.dto.CustomUserDetails;
+import com.kyonggi.backend.model.member.entity.Member;
+import com.kyonggi.backend.model.member.repository.MemberRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

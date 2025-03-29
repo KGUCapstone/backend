@@ -1,8 +1,8 @@
-package com.kyonggi.backend.global.login.oauth2;
+package com.kyonggi.backend.oauth2;
 
-import com.kyonggi.backend.global.login.jwt.JWTUtil;
-import com.kyonggi.backend.global.login.jwt.refresh.RefreshEntity;
-import com.kyonggi.backend.domain.member.repository.RefreshRepository;
+import com.kyonggi.backend.jwt.JWTUtil;
+import com.kyonggi.backend.jwt.refresh.RefreshEntity;
+import com.kyonggi.backend.model.member.repository.RefreshRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

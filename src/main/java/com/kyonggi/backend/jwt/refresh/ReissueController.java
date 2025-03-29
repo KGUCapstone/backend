@@ -1,4 +1,4 @@
-package com.kyonggi.backend.global.login.jwt.refresh;
+package com.kyonggi.backend.jwt.refresh;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

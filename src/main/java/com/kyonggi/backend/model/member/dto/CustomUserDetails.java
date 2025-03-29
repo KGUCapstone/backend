@@ -1,6 +1,6 @@
-package com.kyonggi.backend.domain.member.dto;
+package com.kyonggi.backend.model.member.dto;
 
-import com.kyonggi.backend.domain.member.entity.Member;
+import com.kyonggi.backend.model.member.entity.Member;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 

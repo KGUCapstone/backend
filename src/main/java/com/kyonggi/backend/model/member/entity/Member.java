@@ -1,4 +1,4 @@
-package com.kyonggi.backend.domain.member.entity;
+package com.kyonggi.backend.model.member.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

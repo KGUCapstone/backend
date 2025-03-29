@@ -1,7 +1,7 @@
-package com.kyonggi.backend.domain.member.controller;
+package com.kyonggi.backend.model.member.controller;
 
-import com.kyonggi.backend.global.login.jwt.JWTUtil;
-import com.kyonggi.backend.domain.member.dto.MypageResponseDto;
+import com.kyonggi.backend.jwt.JWTUtil;
+import com.kyonggi.backend.model.member.dto.MypageResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
