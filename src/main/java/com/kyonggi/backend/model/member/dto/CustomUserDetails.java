@@ -33,6 +33,10 @@ public class CustomUserDetails  implements UserDetails {
 
         return collection;
     }
+    public Member getMember() {
+
+        return member;
+    }
 
     public String getName() {
 
