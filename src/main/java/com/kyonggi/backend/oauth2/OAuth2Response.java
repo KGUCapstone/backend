@@ -1,4 +1,4 @@
-package com.kyonggi.backend.oauth2;
+package com.kyonggi.backend.global.login.oauth2;
 
 public interface OAuth2Response {
 

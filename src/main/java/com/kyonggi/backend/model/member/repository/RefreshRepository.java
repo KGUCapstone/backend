@@ -1,6 +1,6 @@
-package com.kyonggi.backend.model.member.repository;
+package com.kyonggi.backend.domain.member.repository;
 
-import com.kyonggi.backend.jwt.refresh.RefreshEntity;
+import com.kyonggi.backend.global.login.jwt.refresh.RefreshEntity;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

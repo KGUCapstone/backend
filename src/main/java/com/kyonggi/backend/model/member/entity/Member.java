@@ -1,4 +1,4 @@
-package com.kyonggi.backend.model.member.entity;
+package com.kyonggi.backend.domain.member.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -18,5 +18,8 @@ public class Member {
     private String email;
     private String role;
     private String name;
+
+                ;
+
 
 }

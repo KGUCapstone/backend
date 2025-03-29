@@ -1,6 +1,6 @@
-package com.kyonggi.backend.model.member.dto;
+package com.kyonggi.backend.domain.member.dto;
 
-import com.kyonggi.backend.model.member.entity.Member;
+import com.kyonggi.backend.domain.member.entity.Member;
 import lombok.Getter;
 import lombok.Setter;
 
