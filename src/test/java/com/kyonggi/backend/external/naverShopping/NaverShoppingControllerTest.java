@@ -1,6 +1,5 @@
 package com.kyonggi.backend.external.naverShopping;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kyonggi.backend.model.cart.Cart;
 import com.kyonggi.backend.model.item.Item;
@@ -10,6 +9,7 @@ import com.kyonggi.backend.model.member.dto.CustomUserDetails;
 import com.kyonggi.backend.model.member.entity.Member;
 import com.kyonggi.backend.model.member.repository.MemberRepository;
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,14 +63,18 @@ class NaverShoppingControllerTest {
 
     @BeforeEach
     void setup() {
-        testMember = new Member();
-        testMember.setUsername("mockuser");
-        testMember.setPassword("1234");
-        testMember.setEmail("mock@abc.com");
-        testMember.setRole("ROLE_USER");
-        testMember.setName("tester");
-
-        memberRepository.save(testMember);
+        Optional<Member> existing = memberRepository.findByUsername("mockuser");
+        if (existing.isPresent()) {
+            testMember = existing.get();
+        } else {
+            testMember = new Member();
+            testMember.setUsername("mockuser");
+            testMember.setPassword("1234");
+            testMember.setEmail("mock@abc.com");
+            testMember.setRole("ROLE_USER");
+            testMember.setName("tester");
+            memberRepository.save(testMember);
+        }
 
         // SecurityContext에 로그인한 사용자 등록
         CustomUserDetails userDetails = new CustomUserDetails(testMember);
@@ -77,6 +82,11 @@ class NaverShoppingControllerTest {
                 userDetails, null, userDetails.getAuthorities()
         );
         SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
+    @AfterEach
+    void tearDown() {
+        memberRepository.deleteByUsername("mockuser");
     }
 
     @Test
@@ -202,8 +212,8 @@ class NaverShoppingControllerTest {
     }
 
     @Test
-    void ConditionbasedSearch() throws Exception {
-        SearchDto dto = new SearchDto();
+    void conditionBasedSearch() throws Exception {
+        NaverSearchRequestDto dto = new NaverSearchRequestDto();
         dto.setTitle("바나나우유");
         dto.setPrice(1300);
         dto.setVolume("240ml");
@@ -222,13 +232,14 @@ class NaverShoppingControllerTest {
         String content = result.getResponse().getContentAsString();
         System.out.println("검색 결과:\n" + content);
 
-        List<?> items = objectMapper.readValue(content, List.class);
+        NaverSearchResponseDto resultDto = objectMapper.readValue(content, NaverSearchResponseDto.class);
+        List<ShoppingResponse.ShoppingItem> items = resultDto.getItems();
         assertThat(items).isNotEmpty();
     }
 
     @Test
-    void ConditionbasedSearchAndAddItemIntoCart() throws Exception {
-        SearchDto dto = new SearchDto();
+    void conditionBasedSearchAndAddItemIntoCart() throws Exception {
+        NaverSearchRequestDto dto = new NaverSearchRequestDto();
         dto.setTitle("바나나우유");
         dto.setPrice(1300);
         dto.setVolume("240ml");
@@ -243,15 +254,14 @@ class NaverShoppingControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // 결과 받아서 최저가 선택
+        // 응답 파싱
         String content = result.getResponse().getContentAsString();
-        List<ShoppingResponse.ShoppingItem> items = objectMapper.readValue(
-                content,
-                new TypeReference<List<ShoppingResponse.ShoppingItem>>() {}
-        );
+        NaverSearchResponseDto resultDto = objectMapper.readValue(content, NaverSearchResponseDto.class);
+        List<ShoppingResponse.ShoppingItem> items = resultDto.getItems();
 
         assertThat(items).isNotEmpty();
 
+        // 최저가 선택
         ShoppingResponse.ShoppingItem cheapest = items.stream()
                 .min(Comparator.comparingInt(ShoppingResponse.ShoppingItem::getLprice))
                 .orElseThrow();

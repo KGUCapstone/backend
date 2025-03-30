@@ -1,8 +1,10 @@
 package com.kyonggi.backend.model.member.entity;
 
 import com.kyonggi.backend.model.cart.Cart;
+import com.kyonggi.backend.model.cart.repository.CartRepository;
 import com.kyonggi.backend.model.item.Item;
 import com.kyonggi.backend.model.item.OnlineItem;
+import com.kyonggi.backend.model.item.repsoitory.ItemRepository;
 import com.kyonggi.backend.model.member.repository.MemberRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -24,6 +26,10 @@ class MemberTest {
 
     @PersistenceContext
     private EntityManager em;
+    @Autowired
+    private ItemRepository itemRepository;
+    @Autowired
+    private CartRepository cartRepository;
 
     @Test
     void member_cart_item_mappingTest() {
@@ -128,5 +134,7 @@ class MemberTest {
         assertThat(saved.getCartList()).hasSize(2);
         assertThat(saved.getCartList().get(0).getItemList()).hasSize(3);
     }
+
+
 
 }
