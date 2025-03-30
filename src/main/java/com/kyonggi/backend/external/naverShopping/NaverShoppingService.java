@@ -71,7 +71,13 @@ public class NaverShoppingService {
                 });
     }
 
-    public List<ShoppingResponse.ShoppingItem> searchWithFilter(String title, int price, String volume, String brand) {
+    public NaverSearchResponseDto searchWithFilter(NaverSearchRequestDto condition) {
+
+        String title = condition.getTitle();
+        int price = condition.getPrice();
+        String volume = condition.getVolume();
+        String brand = condition.getBrand();
+
         String query = String.join(" ", brand, title, volume);
 
         ShoppingRequest request = new ShoppingRequest();
@@ -85,7 +91,7 @@ public class NaverShoppingService {
         int upper = (int) (price * 1.3);
 
         // 후처리 필터링
-        return items.stream()
+        List<ShoppingResponse.ShoppingItem> list = items.stream()
                 .filter(item -> {
                     String cleanTitle = item.getTitle().replaceAll("<[^>]*>", "").toLowerCase();
                     return cleanTitle.contains(title.toLowerCase())
@@ -95,6 +101,11 @@ public class NaverShoppingService {
                             && item.getLprice() <= upper;
                 })
                 .toList();
+
+        NaverSearchResponseDto result = new NaverSearchResponseDto();
+        result.setItems(list);
+        return result;
+
     }
 
 

@@ -6,9 +6,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/shopping")
@@ -20,13 +21,8 @@ public class NaverShoppingController {
 
 
     @PostMapping("/search")
-    public List<ShoppingResponse.ShoppingItem> search(@RequestBody SearchDto condition) {
-        return naverShoppingService.searchWithFilter(
-                condition.getTitle(),
-                condition.getPrice(),
-                condition.getVolume(),
-                condition.getBrand()
-        );
+    public NaverSearchResponseDto search(@RequestBody NaverSearchRequestDto condition) {
+        return naverShoppingService.searchWithFilter(condition);
     }
 
     @PostMapping("/cart")
