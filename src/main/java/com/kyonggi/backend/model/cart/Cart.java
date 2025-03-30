@@ -1,5 +1,6 @@
 package com.kyonggi.backend.model.cart;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kyonggi.backend.model.item.Item;
 import com.kyonggi.backend.model.member.entity.Member;
 import jakarta.persistence.*;
@@ -24,6 +25,7 @@ public class Cart {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
+    @JsonIgnore
     private Member member;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
