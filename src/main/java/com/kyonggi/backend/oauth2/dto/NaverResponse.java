@@ -1,8 +1,8 @@
-package com.kyonggi.backend.oauth2;
+package com.kyonggi.backend.oauth2.dto;
 
 import java.util.Map;
 
-public class NaverResponse implements OAuth2Response{
+public class NaverResponse implements OAuth2Response {
 
     private final Map<String, Object> attribute;
 
