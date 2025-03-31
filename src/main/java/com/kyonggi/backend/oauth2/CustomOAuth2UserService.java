@@ -2,6 +2,10 @@ package com.kyonggi.backend.oauth2;
 
 import com.kyonggi.backend.model.member.entity.Member;
 import com.kyonggi.backend.model.member.repository.MemberRepository;
+import com.kyonggi.backend.oauth2.dto.GoogleResponse;
+import com.kyonggi.backend.oauth2.dto.NaverResponse;
+import com.kyonggi.backend.oauth2.dto.OAuth2Response;
+import com.kyonggi.backend.oauth2.dto.UserDTO;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -26,6 +30,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2Response oAuth2Response = null;
         if (registrationId.equals("naver")) {
             oAuth2Response = new NaverResponse(oAuth2User.getAttributes());
+        }
+
+        else if(registrationId.equals("google")) {
+            oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
         }
 
         else {
