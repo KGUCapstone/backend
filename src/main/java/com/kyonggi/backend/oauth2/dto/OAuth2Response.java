@@ -1,4 +1,4 @@
-package com.kyonggi.backend.oauth2;
+package com.kyonggi.backend.oauth2.dto;
 
 public interface OAuth2Response {
 
