@@ -1,0 +1,8 @@
+# application-db.yml
+
+spring:
+  datasource:
+    url : jdbc:mysql://${DB_URL}/${DB_DATABASE_NAME}?serverTimezone=UTC&characterEncoding=UTF-8
+    username : ${DB_USERNAME}
+    password : ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
