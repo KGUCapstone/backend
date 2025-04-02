@@ -24,7 +24,6 @@ public class NaverShoppingService {
     private final MemberRepository memberRepository;
 
 
-
     @Transactional
     public void addItemToCart(OnlineItemDto dto, Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow();
@@ -71,37 +70,58 @@ public class NaverShoppingService {
                 });
     }
 
+    public ShoppingResponse search(String query) {
+        ShoppingRequest shoppingRequest = new ShoppingRequest();
+        shoppingRequest.setQuery(query);
+
+        return naverClient.search(shoppingRequest);
+    }
+
     public NaverSearchResponseDto searchWithFilter(NaverSearchRequestDto condition) {
 
         String title = condition.getTitle();
         int price = condition.getPrice();
-        String volume = condition.getVolume();
-        String brand = condition.getBrand();
+        String volume = condition.getVolume() != null ? condition.getVolume() : "";
+        String brand = condition.getBrand() != null ? condition.getBrand() : "";
+
 
         String query = String.join(" ", brand, title, volume);
 
         ShoppingRequest request = new ShoppingRequest();
+        log.info("query: {}", query);
         request.setQuery(query);
 
         ShoppingResponse response = naverClient.search(request);
         List<ShoppingResponse.ShoppingItem> items = response.getItems();
 
-        // 가격 범위 계산
-        int lower = (int) (price * 0.6);
-        int upper = (int) (price * 1.3);
+        // 아이템이 없으면 빈 결과 반환
+        if (items == null || items.isEmpty()) {
+            return new NaverSearchResponseDto(List.of());
+        }
 
+        // 가격 범위 계산 
+        int lower = (int) (price * 0.5);
+        int upper = (int) (price * 1.5);
+
+        //System.out.println("items = " + items);
         // 후처리 필터링
         List<ShoppingResponse.ShoppingItem> list = items.stream()
                 .filter(item -> {
-                    String cleanTitle = item.getTitle().replaceAll("<[^>]*>", "").toLowerCase();
-                    return cleanTitle.contains(title.toLowerCase())
-                            && cleanTitle.contains(volume.toLowerCase())
-                            && cleanTitle.contains(brand.toLowerCase())
-                            && item.getLprice() >= lower
-                            && item.getLprice() <= upper;
+                    if (item.getTitle() == null)
+                        return false;
+
+                    // HTML 태그 제거
+                    String cleanTitle = item.getTitle().replaceAll("<[^>]*>", "");
+                    item.setTitle(cleanTitle);
+
+                    if (item.getLprice() >= lower && item.getLprice() <= upper)
+                        return true;
+
+                    return false;
                 })
                 .toList();
 
+        //System.out.println("list = " + list);
         NaverSearchResponseDto result = new NaverSearchResponseDto();
         result.setItems(list);
         return result;
