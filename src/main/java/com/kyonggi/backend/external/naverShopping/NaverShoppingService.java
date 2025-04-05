@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -79,14 +80,21 @@ public class NaverShoppingService {
 
     public NaverSearchResponseDto searchWithFilter(NaverSearchRequestDto condition) {
 
+        List<ShoppingResponse.ShoppingItem> list = getShoppingItems(condition);
+
+        NaverSearchResponseDto result = new NaverSearchResponseDto();
+        result.setItems(list);
+        return result;
+
+    }
+
+    private List<ShoppingResponse.ShoppingItem> getShoppingItems(NaverSearchRequestDto condition) {
         String title = condition.getTitle();
         int price = condition.getPrice();
         String volume = condition.getVolume() != null ? condition.getVolume() : "";
         String brand = condition.getBrand() != null ? condition.getBrand() : "";
 
-
-        String query = String.join(" ", brand, title, volume);
-
+        String query = String.format("%s %s %s", brand, title, volume);
         ShoppingRequest request = new ShoppingRequest();
         log.info("query: {}", query);
         request.setQuery(query);
@@ -94,16 +102,14 @@ public class NaverShoppingService {
         ShoppingResponse response = naverClient.search(request);
         List<ShoppingResponse.ShoppingItem> items = response.getItems();
 
-        // 아이템이 없으면 빈 결과 반환
         if (items == null || items.isEmpty()) {
-            return new NaverSearchResponseDto(List.of());
+            return List.of(); // 빈 리스트 반환
         }
 
-        // 가격 범위 계산 
-        int lower = (int) (price * 0.5);
-        int upper = (int) (price * 1.5);
+        // 가격 범위 계산
+        int lower = (int) (price * 0.6);
+        int upper = (int) (price * 1.3);
 
-        //System.out.println("items = " + items);
         // 후처리 필터링
         List<ShoppingResponse.ShoppingItem> list = items.stream()
                 .filter(item -> {
@@ -114,19 +120,17 @@ public class NaverShoppingService {
                     String cleanTitle = item.getTitle().replaceAll("<[^>]*>", "");
                     item.setTitle(cleanTitle);
 
-                    if (item.getLprice() >= lower && item.getLprice() <= upper)
-                        return true;
+
+                    boolean priceRange = item.getLprice() >= lower && item.getLprice() <= upper;
+                    boolean brandMatch = item.getBrand() != null && item.getBrand().contains(brand);
+                    boolean makerMatch = item.getMaker() != null && item.getMaker().contains(brand);
+                    if ( priceRange && (brandMatch || makerMatch)) return true;
 
                     return false;
                 })
+                .sorted(Comparator.comparingInt(item -> item.getLprice() != null ? item.getLprice() : Integer.MAX_VALUE)) // 가격 오름차순 정렬
+
                 .toList();
-
-        //System.out.println("list = " + list);
-        NaverSearchResponseDto result = new NaverSearchResponseDto();
-        result.setItems(list);
-        return result;
-
+        return list;
     }
-
-
 }
