@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -22,7 +23,6 @@ public class NaverShoppingService {
     private final NaverClient naverClient;
     private final OnlineItemRepository onlineItemRepository;
     private final MemberRepository memberRepository;
-
 
 
     @Transactional
@@ -71,20 +71,40 @@ public class NaverShoppingService {
                 });
     }
 
+    public ShoppingResponse search(String query) {
+        ShoppingRequest shoppingRequest = new ShoppingRequest();
+        shoppingRequest.setQuery(query);
+
+        return naverClient.search(shoppingRequest);
+    }
+
     public NaverSearchResponseDto searchWithFilter(NaverSearchRequestDto condition) {
 
+        List<ShoppingResponse.ShoppingItem> list = getShoppingItems(condition);
+
+        NaverSearchResponseDto result = new NaverSearchResponseDto();
+        result.setItems(list);
+        return result;
+
+    }
+
+    private List<ShoppingResponse.ShoppingItem> getShoppingItems(NaverSearchRequestDto condition) {
         String title = condition.getTitle();
         int price = condition.getPrice();
-        String volume = condition.getVolume();
-        String brand = condition.getBrand();
+        String volume = condition.getVolume() != null ? condition.getVolume() : "";
+        String brand = condition.getBrand() != null ? condition.getBrand() : "";
 
-        String query = String.join(" ", brand, title, volume);
-
+        String query = String.format("%s %s %s", brand, title, volume);
         ShoppingRequest request = new ShoppingRequest();
+        log.info("query: {}", query);
         request.setQuery(query);
 
         ShoppingResponse response = naverClient.search(request);
         List<ShoppingResponse.ShoppingItem> items = response.getItems();
+
+        if (items == null || items.isEmpty()) {
+            return List.of(); // 빈 리스트 반환
+        }
 
         // 가격 범위 계산
         int lower = (int) (price * 0.6);
@@ -93,20 +113,24 @@ public class NaverShoppingService {
         // 후처리 필터링
         List<ShoppingResponse.ShoppingItem> list = items.stream()
                 .filter(item -> {
-                    String cleanTitle = item.getTitle().replaceAll("<[^>]*>", "").toLowerCase();
-                    return cleanTitle.contains(title.toLowerCase())
-                            && cleanTitle.contains(volume.toLowerCase())
-                            && cleanTitle.contains(brand.toLowerCase())
-                            && item.getLprice() >= lower
-                            && item.getLprice() <= upper;
+                    if (item.getTitle() == null)
+                        return false;
+
+                    // HTML 태그 제거
+                    String cleanTitle = item.getTitle().replaceAll("<[^>]*>", "");
+                    item.setTitle(cleanTitle);
+
+
+                    boolean priceRange = item.getLprice() >= lower && item.getLprice() <= upper;
+                    boolean brandMatch = item.getBrand() != null && item.getBrand().contains(brand);
+                    boolean makerMatch = item.getMaker() != null && item.getMaker().contains(brand);
+                    if ( priceRange && (brandMatch || makerMatch)) return true;
+
+                    return false;
                 })
+                .sorted(Comparator.comparingInt(item -> item.getLprice() != null ? item.getLprice() : Integer.MAX_VALUE)) // 가격 오름차순 정렬
+
                 .toList();
-
-        NaverSearchResponseDto result = new NaverSearchResponseDto();
-        result.setItems(list);
-        return result;
-
+        return list;
     }
-
-
 }

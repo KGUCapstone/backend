@@ -11,8 +11,9 @@ import org.springframework.util.MultiValueMap;
 @NoArgsConstructor
 public class ShoppingRequest {
     private String query = "";
-    private Integer display = 10;
-    private String sort = "asc"; // 최저가 정렬
+    private Integer display = 100;
+    private String sort = "sim"; // 정확도 기준
+    //private String sort = "asc"; // 최저가 정렬
 
 
     public MultiValueMap<String, String> map() {
