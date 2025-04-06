@@ -23,6 +23,14 @@ public class OAuth2Controller {
 
         return ResponseEntity.ok(naverAuthUrl);
     }
+    @GetMapping("/google")
+    public ResponseEntity<?> getGoogleLoginUrl() {
+        String googleAuthUrl =
+                backendUrl+"/oauth2/authorization/google";
+
+        return ResponseEntity.ok(googleAuthUrl);
+    }
+
 
     @GetMapping("/token")
     public ResponseEntity<?> getAccessToken(@CookieValue(value = "access_token", required = false) String accessToken) {

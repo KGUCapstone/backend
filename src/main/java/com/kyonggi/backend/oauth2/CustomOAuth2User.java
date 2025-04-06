@@ -1,5 +1,6 @@
 package com.kyonggi.backend.oauth2;
 
+import com.kyonggi.backend.oauth2.dto.UserDTO;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
