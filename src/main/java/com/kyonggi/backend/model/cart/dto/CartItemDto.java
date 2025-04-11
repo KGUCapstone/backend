@@ -11,7 +11,7 @@ import lombok.Setter;
 public class CartItemDto {  //장바구니에 들어있는 상품 정보
 
     private Long id;
-    private String name;
+    private String title;
     private Integer price;
     private String link;
     private String image;
