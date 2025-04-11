@@ -1,4 +1,4 @@
-package com.kyonggi.backend.model.cart.dto;
+package com.kyonggi.backend.model.cart.dto.notUse;
 
 import lombok.Getter;
 import lombok.Setter;
