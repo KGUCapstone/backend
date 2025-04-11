@@ -1,6 +1,6 @@
 package com.kyonggi.backend.model.member.entity;
 
-import com.kyonggi.backend.model.cart.Cart;
+import com.kyonggi.backend.model.cart.entity.Cart;
 import com.kyonggi.backend.model.cart.repository.CartRepository;
 import com.kyonggi.backend.model.item.Item;
 import com.kyonggi.backend.model.item.OnlineItem;

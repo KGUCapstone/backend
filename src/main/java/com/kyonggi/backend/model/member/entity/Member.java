@@ -1,6 +1,6 @@
 package com.kyonggi.backend.model.member.entity;
 
-import com.kyonggi.backend.model.cart.Cart;
+import com.kyonggi.backend.model.cart.entity.Cart;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

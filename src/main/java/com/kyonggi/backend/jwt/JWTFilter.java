@@ -33,6 +33,7 @@ public class JWTFilter extends OncePerRequestFilter {
                 requestUri.equals("/api/join") ||
                 requestUri.equals("/api/reissue") ||
                 requestUri.equals("/api/refresh") ||
+                requestUri.equals("/api/cart/**") ||
                 requestUri.equals("/api/login/oauth2/code/naver") ||
                 requestUri.equals("https://nid.naver.com/oauth2.0/authorize/**")
 

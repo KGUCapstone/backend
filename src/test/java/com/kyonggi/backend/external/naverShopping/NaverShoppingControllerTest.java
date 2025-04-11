@@ -1,7 +1,7 @@
 package com.kyonggi.backend.external.naverShopping;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kyonggi.backend.model.cart.Cart;
+import com.kyonggi.backend.model.cart.entity.Cart;
 import com.kyonggi.backend.model.item.Item;
 import com.kyonggi.backend.model.item.OnlineItem;
 import com.kyonggi.backend.model.item.dto.OnlineItemDto;
