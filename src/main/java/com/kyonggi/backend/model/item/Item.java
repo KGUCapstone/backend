@@ -1,7 +1,7 @@
 package com.kyonggi.backend.model.item;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.kyonggi.backend.model.cart.Cart;
+import com.kyonggi.backend.model.cart.entity.Cart;
 import com.kyonggi.backend.model.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
