@@ -1,9 +1,9 @@
-package com.kyonggi.backend.model.cart.dto;
+package com.kyonggi.backend.model.cart.dto.notUse;
 
+import com.kyonggi.backend.model.cart.dto.CartItemDto;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter @Setter
