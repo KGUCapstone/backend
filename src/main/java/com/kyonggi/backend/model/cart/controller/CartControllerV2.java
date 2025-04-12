@@ -31,13 +31,13 @@ public class CartControllerV2 {
     private final CartRepository cartRepository;
 
     @PostMapping("/add")
-    public ResponseEntity<OnlineItemDto> add(@RequestHeader(value = "Authorization", required = true) String token, @RequestBody OnlineItemDto onlineItemDto) {
+    public ResponseEntity<OnlineItemDto> add(@RequestHeader(value = "Authorization", required = false) String token, @RequestBody OnlineItemDto onlineItemDto) {
         Long memberId = extractMemberIdFromToken(token);
         return ResponseEntity.ok(cartService.addItemToCart(onlineItemDto, memberId));
     }
 
-    @DeleteMapping("/remove")
-    public ResponseEntity<Void> removeItem(@RequestHeader(value = "Authorization", required = true) String token,
+    @PostMapping("/removeItem")
+    public ResponseEntity<Void> removeItem(@RequestHeader(value = "Authorization", required = false) String token,
                                            @RequestBody List<CartItemDto> selectedItems) {
 
         Long memberId = extractMemberIdFromToken(token);
@@ -45,9 +45,8 @@ public class CartControllerV2 {
         return ResponseEntity.ok().build();
     }
 
-
     @PostMapping("/show")
-    public ResponseEntity<List<CartItemDto>> showCart(@RequestHeader(value = "Authorization", required = true) String token) {
+    public ResponseEntity<List<CartItemDto>> showCart(@RequestHeader(value = "Authorization", required = false) String token) {
         Long memberId = extractMemberIdFromToken(token);
         Member member = memberRepository.findById(memberId).get(); // 예외 처리 추가
         List<OnlineItem> items= cartRepository.findActiveCartByMember(member);
@@ -73,7 +72,7 @@ public class CartControllerV2 {
     // 장바구니 비활성화 (구매 완료 처리)
     @PostMapping("/complete")
     public ResponseEntity<Void> completeCart(
-            @RequestHeader(value = "Authorization", required = true) String token,
+            @RequestHeader(value = "Authorization", required = false) String token,
             @RequestBody List<CartItemDto> selectedItems) {
 
         Long memberId = extractMemberIdFromToken(token);
@@ -83,7 +82,7 @@ public class CartControllerV2 {
 
     @PostMapping("/history")
     public ResponseEntity<List<CartSummaryDto>> showCompletedCarts(
-            @RequestHeader(value = "Authorization", required = true) String token) {
+            @RequestHeader(value = "Authorization", required = false) String token) {
 
         Long memberId = extractMemberIdFromToken(token);
         Member member = memberRepository.findById(memberId).orElseThrow();
@@ -98,6 +97,17 @@ public class CartControllerV2 {
 
         return ResponseEntity.ok(result);
     }
+
+
+    @PostMapping("/removeHistory")
+    public ResponseEntity<Void> removeHistory(@RequestHeader(value = "Authorization", required = false) String token,
+                                              @RequestBody List<CartSummaryDto> selectedCarts) {
+
+        Long memberId = extractMemberIdFromToken(token);
+        cartService.removeCartFromHistory(selectedCarts, memberId);
+        return ResponseEntity.ok().build();
+    }
+
 
     @GetMapping("/history/{cartId}")
     public ResponseEntity<List<CartItemDto>> showCartItemsById(@PathVariable(name="cartId") Long cartId) {
@@ -130,28 +140,28 @@ public class CartControllerV2 {
 
 
     // 토큰에서 memberId 추출
-    private Long extractMemberIdFromToken(String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7).trim();
-        }
-        try {
-            String username = jwtUtil.getUsername(token);
-            Long memberId = memberRepository.findByUsername(username).get().getId();
-            return memberId;
-
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid token");
-        }
-    }
-
-    //// test 임의로 "qwer1234"로 memberId를 가져옴 >>
 //    private Long extractMemberIdFromToken(String token) {
-//
+//        if (token.startsWith("Bearer ")) {
+//            token = token.substring(7).trim();
+//        }
 //        try {
-//            return memberRepository.findByUsername("qwer1234").get().getId();
+//            String username = jwtUtil.getUsername(token);
+//            Long memberId = memberRepository.findByUsername(username).get().getId();
+//            return memberId;
+//
 //        } catch (Exception e) {
-//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid token");
 //        }
 //    }
+
+    //// test 임의로 "qwer1234"로 memberId를 가져옴 >>
+    private Long extractMemberIdFromToken(String token) {
+
+        try {
+            return memberRepository.findByUsername("testuser").get().getId();
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
+    }
 
 }
