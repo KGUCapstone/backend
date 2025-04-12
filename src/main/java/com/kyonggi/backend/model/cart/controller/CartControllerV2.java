@@ -37,10 +37,11 @@ public class CartControllerV2 {
     }
 
     @DeleteMapping("/remove/{itemId}")
-    public ResponseEntity<Void> removeItem(@RequestHeader(value = "Authorization", required = true) String token, @PathVariable Long itemId) {
+    public ResponseEntity<Void> removeItem(@RequestHeader(value = "Authorization", required = true) String token,
+                                           @RequestBody List<CartItemDto> selectedItems) {
 
         Long memberId = extractMemberIdFromToken(token);
-        cartService.removeItemFromCart(itemId, memberId);
+        cartService.removeItemFromCart(selectedItems, memberId);
         return ResponseEntity.ok().build();
     }
 
