@@ -37,12 +37,13 @@ public class CartControllerV2 {
     }
 
     @DeleteMapping("/remove/{itemId}")
-    public ResponseEntity<Void> remove(
-            @RequestHeader(value = "Authorization", required = true) String token, @RequestBody OnlineItemDto onlineItemDto) {
+    public ResponseEntity<Void> removeItem(@RequestHeader(value = "Authorization", required = true) String token, @PathVariable Long itemId) {
 
         Long memberId = extractMemberIdFromToken(token);
-        return ResponseEntity.ok(cartService.removeItemFromCart(itemId, memberId));
+        cartService.removeItemFromCart(itemId, memberId);
+        return ResponseEntity.ok().build();
     }
+
 
     @PostMapping("/show")
     public ResponseEntity<List<CartItemDto>> showCart(@RequestHeader(value = "Authorization", required = true) String token) {
