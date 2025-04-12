@@ -36,6 +36,15 @@ public class CartControllerV2 {
         return ResponseEntity.ok(cartService.addItemToCart(onlineItemDto, memberId));
     }
 
+    @DeleteMapping("/remove/{itemId}")
+    public ResponseEntity<Void> removeItem(
+            @RequestHeader(value = "Authorization", required = true) String token, @RequestBody OnlineItemDto onlineItemDto) {
+
+        Long memberId = extractMemberIdFromToken(token);
+        cartService.removeItemFromCart(itemId, memberId);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/show")
     public ResponseEntity<List<CartItemDto>> showCart(@RequestHeader(value = "Authorization", required = true) String token) {
         Long memberId = extractMemberIdFromToken(token);
