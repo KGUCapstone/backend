@@ -72,6 +72,8 @@ public class CartServiceV2 {
 
         // 삭제
         cart.getItemList().remove(itemToRemove);
+
+        memberRepository.save(member);
     }
 
 
