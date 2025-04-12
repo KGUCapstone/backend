@@ -36,7 +36,7 @@ public class CartControllerV2 {
         return ResponseEntity.ok(cartService.addItemToCart(onlineItemDto, memberId));
     }
 
-    @DeleteMapping("/remove/{itemId}")
+    @DeleteMapping("/remove")
     public ResponseEntity<Void> removeItem(@RequestHeader(value = "Authorization", required = true) String token,
                                            @RequestBody List<CartItemDto> selectedItems) {
 
