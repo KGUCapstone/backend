@@ -56,6 +56,25 @@ public class CartServiceV2 {
         return dto;
     }
 
+    public void removeItemFromCart(Long itemId, Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow();
+        Cart cart = member.getCartList().stream()
+                .filter(Cart::isActive)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("활성화된 장바구니가 없습니다."));
+
+        // 아이템 찾기
+        OnlineItem itemToRemove = cart.getItemList().stream()
+                .filter(i -> i.getId().equals(itemId))
+                .map(i -> (OnlineItem) i)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("해당 상품이 존재하지 않습니다."));
+
+        // 삭제
+        cart.getItemList().remove(itemToRemove);
+    }
+
+
 //    public void completeCart(List<CartItemDto> selectedItems, Long memberId) {
 //        Member member = memberRepository.findById(memberId).orElseThrow();
 //
