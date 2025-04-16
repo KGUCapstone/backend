@@ -1,10 +1,14 @@
 package com.kyonggi.backend.model.cart.dto;
 
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class CartSummaryDto {
     private Long cartId;
     private String name;

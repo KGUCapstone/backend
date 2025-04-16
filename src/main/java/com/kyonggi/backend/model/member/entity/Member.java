@@ -24,7 +24,7 @@ public class Member {
     private String role;
     private String name;
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Cart> cartList = new ArrayList<>();
 
 //    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)

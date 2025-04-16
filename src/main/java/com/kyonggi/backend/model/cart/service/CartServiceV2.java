@@ -1,6 +1,7 @@
 package com.kyonggi.backend.model.cart.service;
 
 import com.kyonggi.backend.model.cart.dto.CartItemDto;
+import com.kyonggi.backend.model.cart.dto.CartSummaryDto;
 import com.kyonggi.backend.model.cart.entity.Cart;
 import com.kyonggi.backend.model.item.OnlineItem;
 import com.kyonggi.backend.model.item.dto.OnlineItemDto;
@@ -71,6 +72,26 @@ public class CartServiceV2 {
 
         memberRepository.save(member);
     }
+
+    public void removeCartFromHistory(List<CartSummaryDto> selectedCarts, Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow();
+
+        List<Long> cartIdsToDelete = selectedCarts.stream()
+                .map(CartSummaryDto::getCartId)
+                .toList();
+
+        System.out.println("🧾 삭제할 기록용 장바구니 ID: " + cartIdsToDelete);       //테스트용 로그
+
+        boolean removed = member.getCartList().removeIf(cart ->
+                !cart.isActive() && cartIdsToDelete.contains(cart.getId())
+        );
+
+        System.out.println("✅ 삭제 성공 여부: " + removed);
+
+        memberRepository.save(member);
+    }
+
+
 
 
 //    public void completeCart(List<CartItemDto> selectedItems, Long memberId) {
