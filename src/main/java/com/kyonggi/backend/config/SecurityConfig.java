@@ -67,16 +67,15 @@ public class SecurityConfig {
 
                 //인증 설정
                 .authorizeHttpRequests((auth) -> auth
-                        //.requestMatchers("/join","/login","/logout" ).permitAll()
-                        .requestMatchers("/api/join","/api/login","/api/logout" ,"/oauth2/**"
-                        ,"/api/auth/**").permitAll()
-
-                        // 네이버 쇼핑 검색 테스트를 위해 권한 없이할 수 있게 다 구현 후 주석처리
-                        .requestMatchers("/api/shopping/search", "/api/shopping/cart", "/api/shopping/search/**").permitAll()
-
-                        .requestMatchers("/api/reissue").permitAll()
-                        .requestMatchers("/admin").hasRole("ADMIN")
-                        .anyRequest().authenticated())
+//                        .requestMatchers("/join","/login","/logout" ).permitAll()
+//                        .requestMatchers("/api/join","/api/login","/api/logout" ).permitAll()
+//
+//                        .requestMatchers("/api/reissue").permitAll()
+//                        .requestMatchers("/admin").hasRole("ADMIN")
+//                        .anyRequest().authenticated()
+                        .requestMatchers("/api/**").permitAll()
+                        .anyRequest().permitAll()
+                )
 
 
                 //filter 설정

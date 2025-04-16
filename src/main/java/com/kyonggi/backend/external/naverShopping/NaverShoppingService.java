@@ -1,6 +1,6 @@
 package com.kyonggi.backend.external.naverShopping;
 
-import com.kyonggi.backend.model.cart.Cart;
+import com.kyonggi.backend.model.cart.entity.Cart;
 import com.kyonggi.backend.model.item.OnlineItem;
 import com.kyonggi.backend.model.item.dto.OnlineItemDto;
 import com.kyonggi.backend.model.item.repsoitory.OnlineItemRepository;

@@ -1,6 +1,6 @@
 package com.kyonggi.backend.model.member.entity;
 
-import com.kyonggi.backend.model.cart.Cart;
+import com.kyonggi.backend.model.cart.entity.Cart;
 import com.kyonggi.backend.model.cart.repository.CartRepository;
 import com.kyonggi.backend.model.item.Item;
 import com.kyonggi.backend.model.item.OnlineItem;
@@ -98,7 +98,7 @@ class MemberTest {
             cart.setName("카트 " + i);
             cart.setCreatedAt(LocalDateTime.now());
             cart.setActive(i == 1); // 하나만 active
-
+            System.out.println("cart = " + cart);
             for (int j = 1; j <= 3; j++) {
                 Item item = new Item();
                 item.setName("아이템" + j + "-카트" + i);
