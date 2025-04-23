@@ -11,14 +11,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/shopping")
 @RequiredArgsConstructor
 public class NaverShoppingController {
 
     private final NaverShoppingService naverShoppingService;
-
-
 
     @PostMapping("/search")
     public NaverSearchResponseDto search(@RequestBody NaverSearchRequestDto condition) {
@@ -37,4 +38,12 @@ public class NaverShoppingController {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         return userDetails.getMember().getId();
     }
+
+
+
+    @PostMapping("/compareMall")
+    public List<Map<String, Object>> compareMall(@RequestBody List<NaverSearchRequestDto> conditions) {
+        return naverShoppingService.compareMallName(conditions);
+    }
+
 }
