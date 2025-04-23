@@ -26,27 +26,23 @@ public class NaverShoppingService {
     private final MemberRepository memberRepository;
 
 
+
+
     @Transactional
     public void addItemToCart(OnlineItemDto dto, Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow();
-        Cart cart = getActiveCart(member); // 기존 Cart 재사용 or 새로 생성
+        Cart cart = getActiveCart(member);
         log.info("cartName: {}", cart.getName());
+
         OnlineItem item = new OnlineItem();
-
-
-        String cleanTitle = dto.getTitle().replaceAll("<[^>]*>", "");// HTML 태그 제거용 정규표현식
-        String brand = dto.getBrand();
-        String volume = dto.getVolume();
-
+        String cleanTitle = dto.getTitle().replaceAll("<[^>]*>", "");
         StringBuilder nameBuilder = new StringBuilder();
 
-        // 브랜드 && 용량 정보가 있으면 이름에 추가
-        if (brand != null && !brand.isBlank()) nameBuilder.append(brand).append(" ");
+        if (dto.getBrand() != null && !dto.getBrand().isBlank()) nameBuilder.append(dto.getBrand()).append(" ");
         nameBuilder.append(cleanTitle);
-        if (volume != null && !volume.isBlank()) nameBuilder.append(" ").append(volume);
+        if (dto.getVolume() != null && !dto.getVolume().isBlank()) nameBuilder.append(" ").append(dto.getVolume());
 
         item.setName(nameBuilder.toString().trim());
-
         item.setPrice(dto.getPrice());
         item.setLink(dto.getLink());
         item.setImage(dto.getImage());
@@ -60,7 +56,7 @@ public class NaverShoppingService {
 
     private Cart getActiveCart(Member member) {
         return member.getCartList().stream()
-                .filter(Cart::isActive) // 활성화된 카트 있나 확인
+                .filter(Cart::isActive)
                 .findFirst()
                 .orElseGet(() -> {
                     Cart newCart = new Cart();
@@ -75,18 +71,14 @@ public class NaverShoppingService {
     public ShoppingResponse search(String query) {
         ShoppingRequest shoppingRequest = new ShoppingRequest();
         shoppingRequest.setQuery(query);
-
         return naverClient.search(shoppingRequest);
     }
 
     public NaverSearchResponseDto searchWithFilter(NaverSearchRequestDto condition) {
-
         List<ShoppingResponse.ShoppingItem> list = getShoppingItems(condition);
-
         NaverSearchResponseDto result = new NaverSearchResponseDto();
         result.setItems(list);
         return result;
-
     }
 
     private List<ShoppingResponse.ShoppingItem> getShoppingItems(NaverSearchRequestDto condition) {
@@ -103,78 +95,49 @@ public class NaverShoppingService {
         ShoppingResponse response = naverClient.search(request);
         List<ShoppingResponse.ShoppingItem> items = response.getItems();
 
-        if (items == null || items.isEmpty()) {
-            return List.of(); // 빈 리스트 반환
-        }
+        if (items == null || items.isEmpty()) return List.of();
 
-        // 가격 범위 계산
         int lower = (int) (price * 0.6);
         int upper = (int) (price * 1.3);
 
-        // 후처리 필터링
-        List<ShoppingResponse.ShoppingItem> list = items.stream()
+        return items.stream()
                 .filter(item -> {
-                    if (item.getTitle() == null)
-                        return false;
-
-                    // HTML 태그 제거
-                    String cleanTitle = item.getTitle().replaceAll("<[^>]*>", "");
-                    item.setTitle(cleanTitle);
-
-
+                    if (item.getTitle() == null) return false;
+                    item.setTitle(item.getTitle().replaceAll("<[^>]*>", ""));
                     boolean priceRange = item.getLprice() >= lower && item.getLprice() <= upper;
                     boolean brandMatch = item.getBrand() != null && item.getBrand().contains(brand);
                     boolean makerMatch = item.getMaker() != null && item.getMaker().contains(brand);
-                    if ( priceRange &&
-                            (brandMatch || makerMatch)) return true;
-
-                    return false;
+                    return priceRange && (brandMatch || makerMatch);
                 })
-                .sorted(Comparator.comparingInt(item -> item.getLprice() != null ? item.getLprice() : Integer.MAX_VALUE)) // 가격 오름차순 정렬
-
+                .sorted(Comparator.comparingInt(item -> item.getLprice() != null ? item.getLprice() : Integer.MAX_VALUE))
                 .toList();
-        return list;
     }
 
-    public List<Map<String, Object>> compareMallName(List<NaverSearchRequestDto> conditions) {
+    public List<Map<String, Object>> compareAllWithSelectItems(List<NaverSearchRequestDto> conditions, List<String> targetMallNames) {
         List<Map<String, Object>> resultList = new ArrayList<>();
 
-        List<String> brandList = List.of(
-                "이마트몰", "Homeplus", "트레이더스", "홈플러스 익스프레스",
-                "GS THE FRESH", "프레딧", "CU편의점", "GS25편의점"
-        );
-
-        //Pattern multiPackPattern = Pattern.compile("(\\d+)\\s*(입|팩|개)(\\s*[xX]\\s*(\\d+))?");
-        Pattern multiPackPattern = Pattern.compile(
-                "(\\d+)\\s*(입|팩|개)|([xX*]\\s*(\\d+))"
-        );
-
-
         for (NaverSearchRequestDto condition : conditions) {
-            String title = condition.getTitle();
+            String query = condition.getTitle();
             String volume = condition.getVolume() != null ? condition.getVolume() : "";
             String brand = condition.getBrand() != null ? condition.getBrand() : "";
-            String query = String.format("%s %s %s", brand, title, volume).trim();
+            String searchQuery = String.format("%s %s %s", brand, query, volume).trim();
 
             ShoppingRequest request = new ShoppingRequest();
-            request.setQuery(query);
-            log.info("query: {}", query);
-
+            request.setQuery(searchQuery);
             ShoppingResponse response = naverClient.search(request);
             List<ShoppingResponse.ShoppingItem> items = response.getItems();
             if (items == null || items.isEmpty()) continue;
 
-            Map<String, Object> result = new HashMap<>();
-            result.put("query", query);
+            Map<String, Object> queryResult = new LinkedHashMap<>();
+            queryResult.put("query", query);
 
-            Map<String, Object> resultsByMall = new HashMap<>();
+            Map<String, Object> resultsByMall = new LinkedHashMap<>();
 
-            for (String mall : brandList) {
+            for (String mall : targetMallNames) {
                 List<ShoppingResponse.ShoppingItem> mallItems = items.stream()
                         .filter(item -> item.getMallName() != null && item.getMallName().contains(mall))
                         .map(item -> {
-                            String cleanTitle = item.getTitle() != null ? item.getTitle().replaceAll("<[^>]*>", "") : "";
-                            item.setTitle(cleanTitle);
+                            if (item.getTitle() != null) item.setTitle(item.getTitle().replaceAll("<[^>]*>", ""));
                             return item;
                         })
                         .toList();
@@ -186,82 +149,95 @@ public class NaverShoppingService {
                         .min(Comparator.comparingInt(ShoppingResponse.ShoppingItem::getLprice))
                         .orElse(null);
 
-                String priceInfo = cheapest.getLprice() + "원";
-                Matcher matcher = multiPackPattern.matcher(cheapest.getTitle());
-                if (matcher.find()) {
-                    try {
-                        int count = Integer.parseInt(matcher.group(1));
-                        if (matcher.group(4) != null) {
-                            count *= Integer.parseInt(matcher.group(4));
-                        }
-                        int unit = cheapest.getLprice() / count;
-                        priceInfo += " (1개당 약 " + unit + "원)";
-                    } catch (Exception ignored) {}
-                }
+                if (cheapest == null) continue;
 
-                Map<String, Object> mallResult = new HashMap<>();
-                mallResult.put("items", mallItems);
-
-                Map<String, Object> selectItem = new HashMap<>();
-                selectItem.put("title", cheapest.getTitle());
-                selectItem.put("link", cheapest.getLink());
-                selectItem.put("image", cheapest.getImage());
-                selectItem.put("lprice", cheapest.getLprice());
-                selectItem.put("mallName", cheapest.getMallName());
-                selectItem.put("maker", cheapest.getMaker());
-                selectItem.put("brand", cheapest.getBrand());
-                selectItem.put("priceInfo", priceInfo);
-
-                mallResult.put("selectItem", selectItem);
-                resultsByMall.put(mall, mallResult);
+                Map<String, Object> selectItemMap = toSelectItemMap(cheapest);
+                Map<String, Object> mallData = new LinkedHashMap<>();
+                mallData.put("selectItem", selectItemMap);
+                mallData.put("items", mallItems);
+                resultsByMall.put(mall, mallData);
             }
 
-            result.put("resultsByMall", resultsByMall);
-            resultList.add(result);
+            queryResult.put("resultsByMall", resultsByMall);
+            resultList.add(queryResult);
         }
-
-        Map<String, List<Map<String, Object>>> mallGroupedResults = groupByMallAcrossQueries(resultList);
-        mallGroupedResults.forEach((mall, items) -> {
-            System.out.println("== " + mall + " ==");
-            items.forEach(System.out::println);
-        });
-
 
         return resultList;
     }
 
-    public Map<String, List<Map<String, Object>>> groupByMallAcrossQueries(List<Map<String, Object>> fullResults) {
-        Map<String, List<Map<String, Object>>> groupedByMall = new LinkedHashMap<>();
+    public Map<String, List<Map<String, Object>>> compareItemsGroupedByMall(CompareRequestDto requestDto) {
+        List<NaverSearchRequestDto> conditions = requestDto.getConditions();
+        List<String> targetMallNames = requestDto.getMallNames();
+        List<Map<String, Object>> fullResults = compareAllWithSelectItems(conditions, targetMallNames);
+        return groupByMallAcrossQueries(fullResults);
+    }
 
-        for (Map<String, Object> queryResult : fullResults) {
-            String query = (String) queryResult.get("query");
-            Map<String, Map<String, Object>> resultsByMall = (Map<String, Map<String, Object>>) queryResult.get("resultsByMall");
+    public Map<String, List<Map<String, Object>>> groupByMallAcrossQueries(List<Map<String, Object>> fullResults) {
+        Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+
+        for (Map<String, Object> result : fullResults) {
+            String query = (String) result.get("query");
+            Map<String, Map<String, Object>> resultsByMall = (Map<String, Map<String, Object>>) result.get("resultsByMall");
 
             for (Map.Entry<String, Map<String, Object>> mallEntry : resultsByMall.entrySet()) {
                 String mallName = mallEntry.getKey();
                 Map<String, Object> mallData = mallEntry.getValue();
+                if (mallData == null || !mallData.containsKey("selectItem")) continue;
 
-                if (mallData.containsKey("selectItem")) {
-                    Map<String, Object> selectItem = (Map<String, Object>) mallData.get("selectItem");
+                Map<String, Object> selectItem = (Map<String, Object>) mallData.get("selectItem");
+                Map<String, Object> itemSummary = new LinkedHashMap<>(selectItem);
+                itemSummary.put("query", query);
 
-                    Map<String, Object> mallItemSummary = new LinkedHashMap<>();
-                    mallItemSummary.put("query", query);
-                    mallItemSummary.put("title", selectItem.get("title"));
-                    mallItemSummary.put("lprice", selectItem.get("lprice"));
-                    mallItemSummary.put("priceInfo", selectItem.get("priceInfo"));
-                    mallItemSummary.put("link", selectItem.get("link"));
-                    mallItemSummary.put("image", selectItem.get("image"));
-                    mallItemSummary.put("brand", selectItem.get("brand"));
-                    mallItemSummary.put("maker", selectItem.get("maker"));
-
-                    groupedByMall.computeIfAbsent(mallName, k -> new ArrayList<>()).add(mallItemSummary);
-                }
+                grouped.computeIfAbsent(mallName, k -> new ArrayList<>()).add(itemSummary);
             }
         }
 
-        return groupedByMall;
+        return grouped;
     }
 
+    private Map<String, Object> toSelectItemMap(ShoppingResponse.ShoppingItem item) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("title", item.getTitle());
+        map.put("link", item.getLink());
+        map.put("image", item.getImage());
+        map.put("lprice", item.getLprice());
+        map.put("mallName", item.getMallName());
+        map.put("maker", item.getMaker());
+        map.put("brand", item.getBrand());
+        map.put("priceInfo", buildPriceInfo(item));
+        return map;
+    }
+
+    //private static final Pattern MULTI_PACK_PATTERN = Pattern.compile("(\\d+)\\s*(입|팩|개)(\\s*[xX*]\\s*(\\d+))?");
+    private static final Pattern MULTI_PACK_PATTERN = Pattern.compile(
+            "(\\d+)\\s*(개|입|팩)?(x(\\d+))?", Pattern.CASE_INSENSITIVE
+    );
+    private String buildPriceInfo(ShoppingResponse.ShoppingItem item) {
+        String info = item.getLprice() + "원";
+        String title = item.getTitle();
+
+        // 용량 단위 제거용 정규식
+        Pattern volumePattern = Pattern.compile("(\\d+)(ml|g|kg|L)", Pattern.CASE_INSENSITIVE);
+        String titleWithoutVolume = volumePattern.matcher(title).replaceAll("");
+
+        Matcher matcher = MULTI_PACK_PATTERN.matcher(titleWithoutVolume);
+        int count = 1;
+
+        if (matcher.find()) {
+            try {
+                int base = Integer.parseInt(matcher.group(1));
+                int multiplier = matcher.group(4) != null ? Integer.parseInt(matcher.group(4)) : 1;
+                count = base * multiplier;
+            } catch (NumberFormatException ignore) {}
+        }
+
+        if (count > 1 && item.getLprice() != null) {
+            int unit = item.getLprice() / count;
+            info += " (1개당 약 " + unit + "원)";
+        }
+
+        return info;
+    }
 
 
 }
