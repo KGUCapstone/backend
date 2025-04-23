@@ -165,12 +165,34 @@ public class NaverShoppingService {
         return resultList;
     }
 
-    public Map<String, List<Map<String, Object>>> compareItemsGroupedByMall(CompareRequestDto requestDto) {
+//    public Map<String, List<Map<String, Object>>> compareItemsGroupedByMall(CompareRequestDto requestDto) {
+//        List<NaverSearchRequestDto> conditions = requestDto.getConditions();
+//        List<String> targetMallNames = requestDto.getMallNames();
+//        List<Map<String, Object>> fullResults = compareAllWithSelectItems(conditions, targetMallNames);
+//
+//
+//        return groupByMallAcrossQueries(fullResults);
+//    }
+    public Map<String, Object> compareItemsGroupedByMall(CompareRequestDto requestDto) {
         List<NaverSearchRequestDto> conditions = requestDto.getConditions();
         List<String> targetMallNames = requestDto.getMallNames();
         List<Map<String, Object>> fullResults = compareAllWithSelectItems(conditions, targetMallNames);
-        return groupByMallAcrossQueries(fullResults);
+
+        Map<String, List<Map<String, Object>>> grouped = groupByMallAcrossQueries(fullResults);
+
+        List<String> expectedQueries = conditions.stream()
+                .map(NaverSearchRequestDto::getTitle)
+                .toList();
+
+        Map<String, Object> summary = getMallSummary(fullResults, expectedQueries);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("grouped", grouped);
+        response.put("summary", summary);
+
+        return response;
     }
+
 
     public Map<String, List<Map<String, Object>>> groupByMallAcrossQueries(List<Map<String, Object>> fullResults) {
         Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
@@ -208,10 +230,46 @@ public class NaverShoppingService {
         return map;
     }
 
+    public Map<String, Object> getMallSummary(List<Map<String, Object>> fullResults, List<String> expectedQueries) {
+        Map<String, List<Map<String, Object>>> grouped = groupByMallAcrossQueries(fullResults);
+        Map<String, Object> summaryByMall = new LinkedHashMap<>();
+
+        for (Map.Entry<String, List<Map<String, Object>>> entry : grouped.entrySet()) {
+            String mallName = entry.getKey();
+            List<Map<String, Object>> items = entry.getValue();
+
+            int totalPrice = items.stream()
+                    .mapToInt(item -> (int) item.getOrDefault("lprice", 0))
+                    .sum();
+
+            Map<String, String> inclusion = new LinkedHashMap<>();
+            Set<String> foundQueries = new HashSet<>();
+            for (Map<String, Object> item : items) {
+                if (item.containsKey("query")) {
+                    foundQueries.add(item.get("query").toString());
+                }
+            }
+
+            for (String query : expectedQueries) {
+                inclusion.put(query, foundQueries.contains(query) ? "O" : "X");
+            }
+
+            Map<String, Object> mallSummary = new LinkedHashMap<>();
+            mallSummary.put("totalPrice", totalPrice);
+            mallSummary.put("includes", inclusion);
+
+            summaryByMall.put(mallName, mallSummary);
+        }
+
+        return summaryByMall;
+    }
+
+
     //private static final Pattern MULTI_PACK_PATTERN = Pattern.compile("(\\d+)\\s*(입|팩|개)(\\s*[xX*]\\s*(\\d+))?");
     private static final Pattern MULTI_PACK_PATTERN = Pattern.compile(
             "(\\d+)\\s*(개|입|팩)?(x(\\d+))?", Pattern.CASE_INSENSITIVE
     );
+
     private String buildPriceInfo(ShoppingResponse.ShoppingItem item) {
         String info = item.getLprice() + "원";
         String title = item.getTitle();
