@@ -3,15 +3,18 @@ package com.kyonggi.backend.model.cart.service;
 import com.kyonggi.backend.model.cart.dto.CartItemDto;
 import com.kyonggi.backend.model.cart.dto.CartSummaryDto;
 import com.kyonggi.backend.model.cart.entity.Cart;
+import com.kyonggi.backend.model.item.Item;
 import com.kyonggi.backend.model.item.OnlineItem;
 import com.kyonggi.backend.model.item.dto.OnlineItemDto;
 import com.kyonggi.backend.model.member.entity.Member;
+import com.kyonggi.backend.model.member.entity.MonthlySavedAmount;
 import com.kyonggi.backend.model.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -48,7 +51,9 @@ public class CartServiceV2 {
         item.setImage(dto.getImage());
         item.setMallName(dto.getMallName());
         item.setBrand(dto.getBrand());
+        item.setQuantity(dto.getQuantity());
         item.setVolume("N/A");
+        item.setCompareItemPrice(dto.getCompareItemPrice());
 
 
         cart.addItem(item);
@@ -86,49 +91,16 @@ public class CartServiceV2 {
                 !cart.isActive() && cartIdsToDelete.contains(cart.getId())
         );
 
-        System.out.println("✅ 삭제 성공 여부: " + removed);
+        System.out.println("삭제 성공 여부: " + removed);
 
         memberRepository.save(member);
     }
 
 
-
-
-//    public void completeCart(List<CartItemDto> selectedItems, Long memberId) {
-//        Member member = memberRepository.findById(memberId).orElseThrow();
-//
-//        // 기존 활성화된 장바구니 비활성화
-//        member.getCartList().forEach(cart -> {
-//            if (cart.isActive()) {
-//                cart.setActive(false);
-//            }
-//        });
-//
-//        // 새 Cart 생성
-//        Cart completedCart = new Cart();
-//        completedCart.setActive(false); // 이건 비활성화된 완료된 Cart
-//        completedCart.setName("완료된 장바구니 " + LocalDate.now());
-//        member.addCart(completedCart);
-//
-//        // 선택된 아이템 저장
-//        for (CartItemDto dto : selectedItems) {
-//            OnlineItem item = new OnlineItem();
-//            item.setName(dto.getTitle());
-//            item.setPrice(dto.getPrice());
-//            item.setLink(dto.getLink());
-//            item.setImage(dto.getImage());
-//            item.setMallName(dto.getMallName());
-//            item.setBrand(dto.getBrand());
-//            item.setVolume(dto.getVolume());
-//            completedCart.addItem(item);
-//        }
-//
-//        memberRepository.save(member); // Cart와 Item 저장됨
-//    }
-
-    public void completeCart(List<CartItemDto> selectedItems, Long memberId) {
+    public void completeCart(List<CartItemDto> selectedItems, int totalSavedAmount, Long memberId)
+    {
         Member member = memberRepository.findById(memberId).orElseThrow();
-
+        System.out.println("totalSavedAmount = " + totalSavedAmount);
         // 기존 활성 Cart 조회
         Cart activeCart = member.getCartList().stream()
                 .filter(Cart::isActive)
@@ -140,10 +112,52 @@ public class CartServiceV2 {
                 selectedItems.stream().noneMatch(dto -> dto.getId().equals(item.getId()))
         );
 
-        // 상태 비활성화
+        // 남은 아이템들의 수량 업데이트 추가
+        for (Item item : activeCart.getItemList()) {
+            selectedItems.stream()
+                    .filter(dto -> dto.getId().equals(item.getId()))
+                    .findFirst()
+                    .ifPresent(dto -> item.setQuantity(dto.getQuantity())); // 수량 업데이트
+        }
+
+        //System.out.println("activeCart = " + activeCart.getCreatedAt());
+        LocalDateTime createdAt = activeCart.getCreatedAt();
+
+        int year = createdAt.getYear();          // 2025
+        int month = createdAt.getMonthValue();   // 4
+
+
+        //int previousSaved = member.getTotalSavedAmount();
+        //member.setTotalSavedAmount(previousSaved + totalSavedAmount);
+
+
+        MonthlySavedAmount monthlySaved = member.getMonthlySavedAmounts().stream()
+                .filter(m -> m.getYear() == year && m.getMonth() == month)
+                .findFirst()
+                .orElse(null);
+
+        if (monthlySaved == null) {
+            monthlySaved = MonthlySavedAmount.builder()
+                    .year(year)
+                    .month(month)
+                    .savedAmount(totalSavedAmount)
+                    .member(member)
+                    .build();
+            member.getMonthlySavedAmounts().add(monthlySaved);
+        } else {
+            monthlySaved.setSavedAmount(monthlySaved.getSavedAmount() + totalSavedAmount);
+        }
+
         activeCart.setActive(false);
+//        // 상태 비활성화
+//        if (activeCart.getItemList().isEmpty()) {
+//            activeCart.setActive(false);
+//        }
+
 
         memberRepository.save(member); // 변경 사항 저장
+
+
     }
 
 
@@ -157,6 +171,7 @@ public class CartServiceV2 {
                     //String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
                     newCart.setName("쇼핑카트");
                     newCart.setActive(true);
+                    newCart.setCreatedAt(LocalDateTime.now());
                     member.addCart(newCart);
                     return newCart;
                 });

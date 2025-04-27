@@ -5,7 +5,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
@@ -14,10 +13,10 @@ public class CartSummaryDto {
     private String name;
     private LocalDateTime createdAt;
 
-    public CartSummaryDto(Long cartId, String name) {
+    public CartSummaryDto(Long cartId, String name, LocalDateTime createdAt) {
         this.cartId = cartId;
         this.name = name;
-        this.createdAt = LocalDateTime.now().withSecond(0).withNano(0);
+        this.createdAt = createdAt;
     }
 }
 

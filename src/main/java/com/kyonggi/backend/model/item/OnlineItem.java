@@ -18,6 +18,7 @@ public class OnlineItem extends Item {
     private String link;      // 사이트 주소
     private String image;     // 이미지 주소
     private String mallName;
+    private int compareItemPrice; // 가격 비교를 위한 필드
 
     public OnlineItem(ShoppingResponse.ShoppingItem item) {
         this.setName(item.getTitle());
@@ -27,5 +28,6 @@ public class OnlineItem extends Item {
         this.image = item.getImage();
         this.mallName = item.getMallName();
         this.setBrand(item.getBrand());
+
     }
 }

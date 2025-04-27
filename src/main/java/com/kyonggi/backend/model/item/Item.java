@@ -24,6 +24,7 @@ public class Item {
     private int price;
     private String brand;
     private String volume;
+    private int quantity;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
