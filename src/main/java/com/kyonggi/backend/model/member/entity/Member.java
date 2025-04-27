@@ -35,4 +35,8 @@ public class Member {
         cart.setMember(this);
     }
 
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MonthlySavedAmount> monthlySavedAmounts = new ArrayList<>();
+
+
 }

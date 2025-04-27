@@ -11,4 +11,7 @@ public class OnlineItemDto {
     private String mallName;
     private String brand;
     private String volume;
+
+    private int quantity;
+    private int compareItemPrice;
 }
