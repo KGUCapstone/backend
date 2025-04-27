@@ -78,6 +78,7 @@ public class NaverShoppingService {
         List<ShoppingResponse.ShoppingItem> list = getShoppingItems(condition);
         NaverSearchResponseDto result = new NaverSearchResponseDto();
         result.setItems(list);
+        result.setCompareItem(condition);
         return result;
     }
 
