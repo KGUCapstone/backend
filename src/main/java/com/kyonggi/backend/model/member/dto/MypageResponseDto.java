@@ -10,4 +10,5 @@ import lombok.Setter;
 public class MypageResponseDto {
     private String username;
     private String name;
+    private int thisMonthSaved;
 }

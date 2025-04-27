@@ -4,6 +4,7 @@ package com.kyonggi.backend.model.cart.controller;
 import com.kyonggi.backend.jwt.JWTUtil;
 import com.kyonggi.backend.model.cart.dto.CartItemDto;
 import com.kyonggi.backend.model.cart.dto.CartSummaryDto;
+import com.kyonggi.backend.model.cart.dto.CompleteCartRequestDto;
 import com.kyonggi.backend.model.cart.entity.Cart;
 import com.kyonggi.backend.model.cart.repository.CartRepository;
 import com.kyonggi.backend.model.cart.service.CartServiceV2;
@@ -33,6 +34,7 @@ public class CartControllerV2 {
     @PostMapping("/add")
     public ResponseEntity<OnlineItemDto> add(@RequestHeader(value = "Authorization", required = true) String token, @RequestBody OnlineItemDto onlineItemDto) {
         Long memberId = extractMemberIdFromToken(token);
+        //System.out.println("onlineItemDto = " + onlineItemDto);
         return ResponseEntity.ok(cartService.addItemToCart(onlineItemDto, memberId));
     }
 
@@ -62,6 +64,8 @@ public class CartControllerV2 {
                     dto.setMallName(item.getMallName());
                     dto.setBrand(item.getBrand());
                     dto.setVolume(item.getVolume());
+                    dto.setQuantity(item.getQuantity());
+                    dto.setCompareItemPrice(item.getCompareItemPrice());
                     return dto;
                 })
                 .toList();
@@ -73,10 +77,10 @@ public class CartControllerV2 {
     @PostMapping("/complete")
     public ResponseEntity<Void> completeCart(
             @RequestHeader(value = "Authorization", required = true) String token,
-            @RequestBody List<CartItemDto> selectedItems) {
+            @RequestBody CompleteCartRequestDto request) {
 
         Long memberId = extractMemberIdFromToken(token);
-        cartService.completeCart(selectedItems, memberId);
+        cartService.completeCart(request.getSelectedItems(), request.getTotalSavedAmount(), memberId);
         return ResponseEntity.ok().build();
     }
 
@@ -92,7 +96,7 @@ public class CartControllerV2 {
                 .toList();
 
         List<CartSummaryDto> result = carts.stream()
-                .map(cart -> new CartSummaryDto(cart.getId(), cart.getName()))
+                .map(cart -> new CartSummaryDto(cart.getId(), cart.getName(),cart.getCreatedAt()))
                 .toList();
 
         return ResponseEntity.ok(result);
@@ -108,7 +112,6 @@ public class CartControllerV2 {
         return ResponseEntity.ok().build();
     }
 
-
     @GetMapping("/history/{cartId}")
     public ResponseEntity<List<CartItemDto>> showCartItemsById(@PathVariable(name="cartId") Long cartId) {
         Cart cart = cartRepository.findById(cartId).orElseThrow();
@@ -120,7 +123,9 @@ public class CartControllerV2 {
                 .map(item -> {
                     OnlineItem online = (OnlineItem) item;
                     CartItemDto dto = new CartItemDto();
+                    dto.setQuantity(online.getQuantity());
                     dto.setId(online.getId());
+                    dto.setCreatedAt(online.getCreatedAt());
                     dto.setTitle(online.getName());
                     dto.setPrice(online.getPrice());
                     dto.setLink(online.getLink());
@@ -128,6 +133,7 @@ public class CartControllerV2 {
                     dto.setMallName(online.getMallName());
                     dto.setBrand(online.getBrand());
                     dto.setVolume(online.getVolume());
+                    dto.setCompareItemPrice(online.getCompareItemPrice());
                     return dto;
                 })
                 .toList();

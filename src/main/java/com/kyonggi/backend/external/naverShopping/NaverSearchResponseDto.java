@@ -11,4 +11,5 @@ import java.util.List;
 @NoArgsConstructor
 public class NaverSearchResponseDto {
     private List<ShoppingResponse.ShoppingItem> items;
+    private NaverSearchRequestDto compareItem;
 }
