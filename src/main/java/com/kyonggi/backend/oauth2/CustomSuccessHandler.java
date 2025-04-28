@@ -9,16 +9,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 
 @Component
 @RequiredArgsConstructor
@@ -34,14 +30,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         //OAuth2User
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
-
         String username = customUserDetails.getUsername();
-
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
-        GrantedAuthority auth = iterator.next();
-        String role = auth.getAuthority();
-
+        String role = authentication.getAuthorities().iterator().next().getAuthority();
         String name = customUserDetails.getName();
 
         // token 생성
@@ -53,10 +43,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         // 응답 생성
         response.setHeader("Authorization", "Bearer " + access);
-        response.addCookie(createCookie("refresh", refresh, 24 * 60 * 60));
-
-        //System.out.println("access = " + access);
-        response.setStatus(HttpStatus.OK.value());
+        response.addCookie(createCookie("access_token", access, 60 * 60));
+        response.addCookie(createCookie("refresh", refresh, 24 * 60 * 60)); // 24시간
 
 
         // 프론트엔드로 리다이렉트
@@ -67,10 +55,10 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private Cookie createCookie(String key, String value, int maxAge) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(maxAge);
-        cookie.setSecure(false); // HTTPS에서만 전송 (개발 환경에서는 false로 변경)
+        cookie.setSecure(false);
         cookie.setPath("/");
-        cookie.setHttpOnly(true); // JavaScript에서 접근 불가
-        cookie.setAttribute("SameSite", "Lax"); // CORS 환경에서는 Lax가 더 적합
+        cookie.setHttpOnly(false);
+        cookie.setAttribute("SameSite", "Strict");
         return cookie;
     }
 

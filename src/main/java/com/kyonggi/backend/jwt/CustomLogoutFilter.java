@@ -74,6 +74,11 @@ public class CustomLogoutFilter extends GenericFilterBean {
         cookie.setMaxAge(0);
         cookie.setPath("/");
 
+        Cookie access_cookie = new Cookie("access_token", null);
+        access_cookie.setMaxAge(0);
+        access_cookie.setPath("/");
+
+        response.addCookie(access_cookie);
         response.addCookie(cookie);
         response.setStatus(HttpServletResponse.SC_OK);
     }
