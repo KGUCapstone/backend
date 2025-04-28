@@ -29,14 +29,14 @@ public class Member {
 
 //    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
 //    private List<Item> itemList = new ArrayList<>();
-
+    private int totalSavedAmount;
     public void addCart(Cart cart) {
         cartList.add(cart);
         cart.setMember(this);
     }
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MonthlySavedAmount> monthlySavedAmounts = new ArrayList<>();
+    private List<DailySavedAmount> monthlySavedAmounts = new ArrayList<>();
 
 
 }

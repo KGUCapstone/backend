@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MonthlySavedAmount {
+public class DailySavedAmount {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,9 +17,10 @@ public class MonthlySavedAmount {
 
     private int year;
     private int month;
+    private int day;
 
     private int savedAmount;
-
+    private int consumedAmount;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;

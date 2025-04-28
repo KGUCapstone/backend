@@ -4,7 +4,7 @@ import com.kyonggi.backend.jwt.JWTUtil;
 import com.kyonggi.backend.model.member.dto.MonthlySavedAmountDto;
 import com.kyonggi.backend.model.member.dto.MypageResponseDto;
 import com.kyonggi.backend.model.member.entity.Member;
-import com.kyonggi.backend.model.member.entity.MonthlySavedAmount;
+import com.kyonggi.backend.model.member.entity.DailySavedAmount;
 import com.kyonggi.backend.model.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -53,7 +53,7 @@ public class MypageController {
 
         return member.getMonthlySavedAmounts().stream()
                 .filter(m -> m.getYear() == year && m.getMonth() == month)
-                .mapToInt(MonthlySavedAmount::getSavedAmount)
+                .mapToInt(DailySavedAmount::getSavedAmount)
                 .sum();
     }
 

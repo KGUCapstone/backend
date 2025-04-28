@@ -47,6 +47,9 @@ dependencies {
 	// env 파일을 사용하기 위한 라이브러리
 	implementation 'io.github.cdimascio:dotenv-java:3.0.0'
 
+	// 배포용 mariadb
+	implementation 'org.mariadb.jdbc:mariadb-java-client'
+
 }
 
 tasks.named('test') {
