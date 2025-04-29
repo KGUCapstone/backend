@@ -96,8 +96,32 @@ public class CartControllerV2 {
                 .toList();
 
         List<CartSummaryDto> result = carts.stream()
-                .map(cart -> new CartSummaryDto(cart.getId(), cart.getName(),cart.getCreatedAt()))
+                .map(cart -> {
+                    List<Item> items = cart.getItemList();
+
+                    int totalQuantity = items.stream().mapToInt(Item::getQuantity).sum();
+
+                    int totalPrice = items.stream()
+                            .mapToInt(item -> item.getPrice() * item.getQuantity())
+                            .sum();
+
+                    String thumbnailUrl = items.stream()
+                            .filter(item -> item instanceof OnlineItem)
+                            .map(item -> ((OnlineItem) item).getImage())
+                            .findFirst()
+                            .orElse("https://via.placeholder.com/60"); // 기본 이미지
+
+                    return new CartSummaryDto(
+                            cart.getId(),
+                            cart.getName(),
+                            cart.getCreatedAt(),
+                            thumbnailUrl,
+                            totalQuantity,
+                            totalPrice
+                    );
+                })
                 .toList();
+
 
         return ResponseEntity.ok(result);
     }
