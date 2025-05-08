@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -78,6 +79,7 @@ public class CartServiceV2 {
         memberRepository.save(member);
     }
 
+    @Transactional
     public void removeCartFromHistory(List<CartSummaryDto> selectedCarts, Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow();
 
@@ -85,16 +87,47 @@ public class CartServiceV2 {
                 .map(CartSummaryDto::getCartId)
                 .toList();
 
-        System.out.println("🧾 삭제할 기록용 장바구니 ID: " + cartIdsToDelete);
+        List<Cart> targetCarts = member.getCartList().stream()
+                .filter(cart -> !cart.isActive() && cartIdsToDelete.contains(cart.getId()))
+                .toList();
+
+        for (Cart cart : targetCarts) {
+            int savedToRemove = cart.getItemList().stream()
+                    .filter(item -> item instanceof OnlineItem)
+                    .mapToInt(item -> {
+                        OnlineItem online = (OnlineItem) item;
+                        if (online.getCompareItemPrice() > 0) {
+                            return (online.getCompareItemPrice() - online.getPrice()) * online.getQuantity();
+                        }
+                        return 0;
+                    })
+                    .sum();
+
+            LocalDateTime createdAt = cart.getCreatedAt();
+            int year = createdAt.getYear();
+            int month = createdAt.getMonthValue();
+            int day = createdAt.getDayOfMonth();
+
+            Optional<DailySavedAmount> match = member.getMonthlySavedAmounts().stream()
+                    .filter(d -> d.getYear() == year && d.getMonth() == month && d.getDay() == day)
+                    .findFirst();
+
+            match.ifPresent(daily -> {
+                int current = daily.getSavedAmount();
+                daily.setSavedAmount(Math.max(0, current - savedToRemove));
+            });
+
+            System.out.printf("🧾 장바구니 ID %d에서 %d원 절약금 차감 완료\n", cart.getId(), savedToRemove);
+        }
 
         boolean removed = member.getCartList().removeIf(cart ->
                 !cart.isActive() && cartIdsToDelete.contains(cart.getId())
         );
 
-        System.out.println("삭제 성공 여부: " + removed);
-
+        System.out.println("🗑️ 삭제 성공 여부: " + removed);
         memberRepository.save(member);
     }
+
 
 
     public void completeCart(List<CartItemDto> selectedItems, int totalSavedAmount, Long memberId) {
