@@ -64,10 +64,11 @@ public class ReissueService {
         refreshEntity.ifPresent(entity -> refreshRepository.deleteByRefresh(entity.getRefresh()));
 
         // 새 Refresh Token 저장
-        addRefreshEntity(username, newRefresh, 60 * 60 * 24L);
+        addRefreshEntity(username, newRefresh, 60 * 60 * 24L * 1000L); // 24시간을 밀리초로 변환 (24 * 60 * 60 * 1000)
 
         response.setHeader("Authorization", "Bearer " + newAccess);
-        response.addCookie(createCookie("refresh", newRefresh, 60 * 60 * 24));
+        // refresh 쿠키 설정 변경
+        response.addCookie(createCookie("refresh", newRefresh, 60 * 60 * 24, true, "Lax")); // 변경: SameSite=Lax로 변경
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -83,13 +84,14 @@ public class ReissueService {
         return null;
     }
 
-    private Cookie createCookie(String key, String value, int maxAge) {
+    // createCookie 메서드 시그니처 및 내부 로직 변경
+    private Cookie createCookie(String key, String value, int maxAge, boolean httpOnly, String sameSite) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(maxAge);
-        cookie.setSecure(false); // HTTPS에서만 전송 (개발 환경에서는 false로 변경)
+        cookie.setSecure(false); // 개발 환경에서는 false, HTTPS 배포 시 true로 변경
         cookie.setPath("/");
-        cookie.setHttpOnly(true); // JavaScript에서 접근 불가
-        cookie.setAttribute("SameSite", "Strict"); // CORS 환경에서 필수
+        cookie.setHttpOnly(httpOnly); // 인자로 받은 httpOnly 값 설정
+        cookie.setAttribute("SameSite", sameSite); // 인자로 받은 sameSite 값 설정
         return cookie;
     }
 
