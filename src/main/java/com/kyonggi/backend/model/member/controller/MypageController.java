@@ -1,6 +1,7 @@
 package com.kyonggi.backend.model.member.controller;
 
 import com.kyonggi.backend.jwt.JWTUtil;
+import com.kyonggi.backend.model.member.dto.GoalAmountRequest;
 import com.kyonggi.backend.model.member.dto.MonthlySavedAmountDto;
 import com.kyonggi.backend.model.member.dto.MypageResponseDto;
 import com.kyonggi.backend.model.member.entity.DailySavedAmount;
@@ -10,10 +11,7 @@ import com.kyonggi.backend.model.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -104,6 +102,26 @@ public class MypageController {
                 .sorted(Comparator.comparing(Map.Entry::getKey))
                 .map(entry -> new MonthlySavedAmountDto(entry.getKey(), entry.getValue()))
                 .toList();
+    }
+
+
+    @PostMapping("/goal")
+    public ResponseEntity<Void> updateGoalAmount(@RequestHeader("Authorization") String token, @RequestBody GoalAmountRequest requestBody) {
+        Member member = getMember(token); // getMember 메서드는 그대로 사용
+
+        int goalAmount = requestBody.getGoalAmount(); // DTO에서 goalAmount 값을 가져옵니다.
+
+        if (goalAmount < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "목표 금액은 0원 이상이어야 합니다.");
+        }
+
+        if (goalAmount == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "목표 금액이 설정되지 않았습니다.");
+        }
+
+        member.setGoalAmount(goalAmount);
+        memberRepository.save(member);
+        return ResponseEntity.ok().build();
     }
 
     private Member getMember(String token) {
