@@ -64,6 +64,7 @@ public class MemberJoinService {
         data.setName(name);
         data.setEmail(email);
         data.setRole("ROLE_USER");
+        data.setGoalAmount(100000);
 
         Member saveMember = userRepository.save(data);
 
