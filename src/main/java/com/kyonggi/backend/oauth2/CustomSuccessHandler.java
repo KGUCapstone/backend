@@ -35,18 +35,18 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String name = customUserDetails.getName();
 
         // token 생성
-        String access = jwtUtil.createJwt("access", username, role,name, 60 * 60L); // 1시간
-        String refresh = jwtUtil.createJwt("refresh", username, role,name, 24 * 60 * 60L); // 24시간
+        String access = jwtUtil.createJwt("access", username, role,name, 60 * 60L * 1000L); // 1시간
+        String refresh = jwtUtil.createJwt("refresh", username, role,name, 24 * 60 * 60L * 1000L); // 24시간
 
         //Refresh 토큰 저장
-        addRefreshEntity(username, refresh, 86400000L); // 24시간을 밀리초로 변환 (24 * 60 * 60 * 1000)
+        addRefreshEntity(username, refresh, 24 * 60 * 60L * 1000L); // 24시간을 밀리초로 변환 (24 * 60 * 60 * 1000)
 
         // 응답 생성
         response.setHeader("Authorization", "Bearer " + access);
         // access_token 쿠키 설정 변경
-        response.addCookie(createCookie("access_token", access, 60 * 60, false, "Lax")); // 변경: HttpOnly=false 유지, SameSite=Lax로 변경
+        response.addCookie(createCookie("access_token", access, 60 * 60 * 1000, false, "Lax")); // 변경: HttpOnly=false 유지, SameSite=Lax로 변경
         // refresh 쿠키 설정 (기존과 동일하게 HttpOnly=true 유지)
-        response.addCookie(createCookie("refresh", refresh, 24 * 60 * 60, true, "Lax")); // 변경: HttpOnly=true, SameSite=Lax로 변경
+        response.addCookie(createCookie("refresh", refresh, 24 * 60 * 60 * 1000, true, "Lax")); // 변경: HttpOnly=true, SameSite=Lax로 변경
 
         // 프론트엔드로 리다이렉트
         getRedirectStrategy().sendRedirect(request, response, frontendUrl+"/home");

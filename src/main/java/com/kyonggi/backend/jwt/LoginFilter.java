@@ -81,8 +81,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String name = customUserDetails.getName();
 
         // token 생성
-        String access = jwtUtil.createJwt("access", username, role,  name,60 * 60L); // 1시간
-        String refresh = jwtUtil.createJwt("refresh", username, role, name, 24 * 60 * 60L); // 24
+        String access = jwtUtil.createJwt("access", username, role,  name,60 * 60L * 1000L); // 1시간
+        String refresh = jwtUtil.createJwt("refresh", username, role, name, 24 * 60 * 60L * 1000L); // 24
 
 
         //Refresh 토큰 저장
@@ -91,7 +91,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         // 응답 생성
         response.setHeader("Authorization", "Bearer " + access);
-        response.addCookie(createCookie("refresh", refresh, 24 * 60 * 60));
+        response.addCookie(createCookie("refresh", refresh, 24 * 60 * 60 * 1000));
 
         response.setStatus(HttpStatus.OK.value());
     }
