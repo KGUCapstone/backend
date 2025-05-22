@@ -38,5 +38,6 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DailySavedAmount> monthlySavedAmounts = new ArrayList<>();
 
+    private int goalAmount; // 목표 금액 (10만원)
 
 }
