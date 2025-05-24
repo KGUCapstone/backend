@@ -83,10 +83,10 @@ public class NaverShoppingService {
     }
 
     private List<ShoppingResponse.ShoppingItem> getShoppingItems(NaverSearchRequestDto condition) {
-        String title = condition.getTitle();
+        String title = condition.getTitle().trim();
         int price = condition.getPrice();
-        String volume = condition.getVolume() != null ? condition.getVolume() : "";
-        String brand = condition.getBrand() != null ? condition.getBrand() : "";
+        String volume = condition.getVolume() != null ? condition.getVolume().trim() : "";
+        String brand = condition.getBrand() != null ? condition.getBrand().trim() : "";
 
         String query = String.format("%s %s %s", brand, title, volume);
         ShoppingRequest request = new ShoppingRequest();
